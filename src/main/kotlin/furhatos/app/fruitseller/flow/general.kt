@@ -1,7 +1,10 @@
 package furhatos.app.fruitseller.flow
 
 import furhatos.flow.kotlin.*
+import furhatos.records.User
 import furhatos.util.*
+
+
 
 val Idle: State = state {
 
@@ -37,8 +40,13 @@ val Interaction: State = state {
             goto(Idle)
         }
     }
-
-    onUserEnter(instant = true) {
-        furhat.glance(it)
+    onUserEnter() {
+        val activeCustomer = users.current
+        furhat.attend(it)
+        if (activeCustomer != null) {
+            furhat.say("I will help you later!")
+            furhat.attend(activeCustomer)
+        }
+        reentry()
     }
 }
