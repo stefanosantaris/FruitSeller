@@ -41,5 +41,4 @@ val Interaction: State = state {
     onUserEnter(instant = true) {
         furhat.glance(it)
     }
-
 }
