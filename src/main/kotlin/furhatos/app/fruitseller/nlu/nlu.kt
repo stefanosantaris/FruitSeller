@@ -15,6 +15,17 @@ val fruitPrices = mapOf(
 )
 
 
+class FruitDeals: Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+            "What are the deals for today?",
+            "Are there any special deals?",
+            "Any deals?"
+        )
+    }
+}
+
+
 class FruitPriceRequestPerItem(val fruit:Fruit? = null): Intent() {
     override fun getExamples(lang: Language): List<String> {
         return listOf(
@@ -36,7 +47,6 @@ class QuantifiedFruit(
         return generate("$count $fruit")
     }
 }
-
 
 class Fruit: EnumEntity(stemming=true, speechRecPhrases=true) {
     override fun getEnum(lang: Language):List<String> {

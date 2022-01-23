@@ -32,7 +32,7 @@ val CatchName:State = state(Interaction) {
 
     onResponse<TellNameBriefly> {
         users.current.name = "${it.intent.name}"
-        furhat.say("Hello ${users.current.name}. Welcome to the store.")
+        furhat.say("Hello ${users.current.name}. Welcome to the fruit store.")
         goto(TakingOrder)
     }
 
@@ -57,35 +57,40 @@ val Options = state(Interaction) {
     }
 
     onResponse<RequestOptions> {
-//        Fruit().getEnumItems()
         val fruits = Fruit().getEnumItems(Language.ENGLISH_US)
         var fruitOptions:MutableList<String> = mutableListOf<String>()
         for (fruit in fruits) {
             fruitOptions.add(fruit.wordString)
         }
+
         furhat.say("We have ${fruitOptions.joinToString(",")}")
         furhat.ask("Do you want some ${users.current.name}?")
     }
 
     onResponse<FruitPriceRequestPerItem> {
         val requestedFruit: String = "${it.intent.fruit}"
-        furhat.say("The ${requestedFruit} costs ${fruitPrices.get(requestedFruit)} dollars per item.")
+        furhat.say("The $requestedFruit costs ${fruitPrices[requestedFruit]} dollars per item.")
         furhat.ask("Which fruits would you like to buy?")
     }
 
-}
 
+    onResponse<FruitDeals> {
+        furhat.say("If you buy 3 apples, then you get one free!")
+        furhat.ask("Would you like to buy some fruits?")
+    }
+}
 
 val TakingOrder = state(Options) {
     onEntry {
+        furhat.say("How can I help you?")
         random(
-            {furhat.ask("How about some fruits?")},
+            {furhat.ask("Would you like some fruits?")},
             {furhat.ask("Do you want some fruits?")}
         )
     }
 
     onResponse<No> {
-        furhat.say("Okay ${users.current.name}, that's a shame. Have a splendid day!")
+        furhat.say("Okay ${users.current.name}, that's a shame. See you next time! Have a splendid day!")
         goto(Idle)
     }
 }
@@ -94,8 +99,14 @@ val TakingOrder = state(Options) {
 fun OrderReceived(fruitList: FruitList) : State = state(Options) {
     onEntry {
         furhat.say("${fruitList.text}, what a lovely choice!")
+
         fruitList.list.forEach {
             users.current.order.fruits.list.add(it)
+        }
+        for (fruit in fruitList.list) {
+            if (fruit.fruit.toString() == "apple" && (fruit.count?.value ?: 0 == 3)) {
+                furhat.say("Congratulations. You got one apple for free!")
+            }
         }
         furhat.ask("Anything else?")
     }
@@ -108,7 +119,11 @@ fun OrderReceived(fruitList: FruitList) : State = state(Options) {
         furhat.say("Okay ${users.current.name}, here is your order of ${users.current.order.fruits}.")
         var price = 0.0
         for (fruit in users.current.order.fruits.list) {
-            val numFruits = fruit.count?.value ?: 0
+            var numFruits = fruit.count?.value ?: 0
+            val fruitName = fruit.fruit.toString()
+            if (fruitName == "apple" && numFruits == 3) {
+                numFruits -= 1
+            }
             val fruitPrice = fruitPrices.getOrDefault(fruit.fruit.toString(), 0.0)
             price += numFruits * fruitPrice
 
